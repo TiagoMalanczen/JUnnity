@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -58,5 +57,55 @@ class ContaServiceTest {
         assertEquals("Saldo da conta e origem insuficiente", exception.getMessage());
 
         verify(contaRepository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("Conta origem inexistente")
+    public void contaOrigemInexistente(){
+
+    when(contaRepository.buscarPorId(1L)).thenReturn(Optional.empty());
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            contaService.tranferir(1L, 2L, new BigDecimal("10")));
+
+    assertEquals("Conta de origem nao encontrada", exception.getMessage());
+
+        verify(contaRepository, never()).buscarPorId(2L);
+        verify(contaRepository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("Conta destino nao existe")
+    public void contaDestinoInexistente(){
+        Conta conta = new Conta(1L, "Marco", new BigDecimal("100"));
+
+        when(contaRepository.buscarPorId(1L)).thenReturn(Optional.of(conta));
+        when(contaRepository.buscarPorId(2L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                contaService.tranferir(1L, 2L, new BigDecimal("299")));
+
+        assertEquals("Conta de destino nao encontrada", exception.getMessage());
+        verify(contaRepository, times(1)).buscarPorId(1L);
+        verify(contaRepository, times(1)).buscarPorId(2L);
+        verify(contaRepository, never()).salvar(any());
+    }
+
+    @Test
+    @DisplayName("Verifica valor nulo")
+    public void nulo(){
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                contaService.tranferir(1L, 2L, null));
+        assertEquals("O valor eh negativo ou nulo", exception.getMessage());
+        verifyNoInteractions(contaRepository);
+    }
+    @Test
+    @DisplayName("Verifica valor negativo")
+    public void negativo(){
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                contaService.tranferir(1L, 2L, new BigDecimal("-10")));
+        assertEquals("O valor eh negativo ou nulo", exception.getMessage());
+        verifyNoInteractions(contaRepository);
+
     }
 }

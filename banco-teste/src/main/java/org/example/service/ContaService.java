@@ -14,14 +14,14 @@ public class ContaService {
         this.contaRepository = contaRepository;
     }
     public void tranferir(Long idOrigem, Long idDestino, BigDecimal valor){
+        if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0   ) {
+            throw new IllegalArgumentException("O valor eh negativo ou nulo");
+        }
         Conta origem = contaRepository.buscarPorId(idOrigem)
                 .orElseThrow(() -> new IllegalArgumentException("Conta de origem nao encontrada"));
         Conta destino = contaRepository.buscarPorId(idDestino)
                 .orElseThrow(() -> new IllegalArgumentException("Conta de destino nao encontrada"));
 
-        if(valor == null || valor.compareTo(BigDecimal.ZERO) <= 0   ) {
-            throw new IllegalArgumentException("O valor eh negativo");
-        }
         if(valor.compareTo(origem.getSaldo()) > 0){
             throw new IllegalArgumentException("Saldo da conta e origem insuficiente");
         }
