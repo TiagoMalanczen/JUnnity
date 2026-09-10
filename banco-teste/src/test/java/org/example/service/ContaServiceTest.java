@@ -44,5 +44,19 @@ class ContaServiceTest {
     }
 
     @Test
-    @DisplayName("")
+    @DisplayName("Erro caso a conta de origem nao tenha saldo suficiente")
+    public void saldoInsuficiente(){
+        Conta conta1 = new Conta(1L, "Joao", new BigDecimal("50.00"));
+        Conta conta2 = new Conta(2L, "Maria", new BigDecimal("100.00"));
+
+        when(contaRepository.buscarPorId(1L)).thenReturn(Optional.of(conta1));
+        when(contaRepository.buscarPorId(2L)).thenReturn(Optional.of(conta2));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,() -> contaService.tranferir(
+                conta1.getId(), conta2.getId(), new BigDecimal("100.00")));
+
+        assertEquals("Saldo da conta e origem insuficiente", exception.getMessage());
+
+        verify(contaRepository, never()).salvar(any());
+    }
 }
