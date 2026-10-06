@@ -45,7 +45,26 @@ class EmprestimoServiceTest {
         verify(usuarioRepository, times(1)).findById(usuario.getId());
         verify(livroRepository, times(1)).findById(livro.getId());
         verify(livroRepository, times(1)).atualizarEstoque(livro.getId(), 4);
+    }
 
+    @Test
+    @DisplayName("Deve lancar excecao caso o usuario esteja bloqueado")
+    void deveLancarExcecaoQuandoUsuarioEstiverBloqueado() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID livroId = UUID.randomUUID();
+        UsuarioEntity usuario = new UsuarioEntity(usuarioId, "Tiago", true); // Usuario bloqueado
+
+        when(usuarioRepository.findById(usuarioId)).thenReturn(Optional.of(usuario));
+
+        RegraNegocioException exception = assertThrows(
+                RegraNegocioException.class,
+                () -> emprestimoService.realizarEmprestimo(usuarioId, livroId)
+        );
+
+        assertEquals("Usuario com bloqueio", exception.getMessage());
+
+        verify(livroRepository, never()).findById(any());
+        verify(livroRepository, never()).atualizarEstoque(any(), anyInt());
     }
 
 }
