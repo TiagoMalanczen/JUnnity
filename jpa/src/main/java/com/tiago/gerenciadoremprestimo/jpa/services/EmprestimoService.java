@@ -17,7 +17,7 @@ public class EmprestimoService {
 
     public void realizarEmprestimo(UUID usuarioId, UUID livroId){
         UsuarioEntity usuario = usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RegraNegocioException("Erro ao encontrar usuario"));
+                .orElseThrow(() -> new RegraNegocioException("Usuario nao encontrado"));
         if(usuario.isLock()){
             throw new RegraNegocioException("Usuario com bloqueio");
         }

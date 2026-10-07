@@ -67,4 +67,39 @@ class EmprestimoServiceTest {
         verify(livroRepository, never()).atualizarEstoque(any(), anyInt());
     }
 
+
+    @Test
+    @DisplayName("Deve lancar excessao quando o estoque de livros for insuficiente")
+    void deveLancarExcecaoQuandoLivroSemEstoque(){
+        UsuarioEntity usuario = new UsuarioEntity(UUID.randomUUID(), "Tiago", false);
+        LivroEntity livro = new LivroEntity(UUID.randomUUID(), "Clean Code", 0);
+
+        when(usuarioRepository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+        when(livroRepository.findById(livro.getId())).thenReturn(Optional.of(livro));
+
+        RegraNegocioException exception = assertThrows(RegraNegocioException.class,
+                () -> emprestimoService.realizarEmprestimo(usuario.getId(), livro.getId()));
+
+        assertEquals("Estoque insuficiente", exception.getMessage());
+
+        verify(livroRepository, never()).atualizarEstoque(any(), anyInt());
+    }
+
+    @Test
+    @DisplayName("Deve lancar excessao de usuario nao encontrado")
+    void deveLancarExcecaoQuandoUsuarioNaoEncontrado(){
+
+        UUID usuarioId = UUID.randomUUID();
+        UUID livroId = UUID.randomUUID();
+
+        when(usuarioRepository.findById(usuarioId)).thenReturn(Optional.empty());
+
+        RegraNegocioException exception = assertThrows(RegraNegocioException.class,
+                () -> emprestimoService.realizarEmprestimo(usuarioId, livroId));
+
+        assertEquals("Usuario nao encontrado", exception.getMessage());
+
+        verifyNoInteractions(livroRepository);
+    }
+
 }
